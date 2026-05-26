@@ -96,11 +96,13 @@ class AcousticPhoneticLinguistic(nn.Module):
         self.cal_mel = MelSpectrogram(sample_rate=16000, n_fft=400, hop_length=160, n_mels=80)
         
         self.wav2vec2 = Wav2Vec2Model.from_pretrained("nguyenvulebinh/wav2vec2-base-vietnamese-250h")
+        
         for param in self.wav2vec2.parameters():
             param.requires_grad = False
             
         self.acoustic = AcousticEncoder(freq_bins=freq_bins, lstm_hidden=lstm_hidden)
         self.phonetic = PhoneticEncoder(feature_bins=phon_feat_bins, lstm_hidden=lstm_hidden)
+        
         self.linguistic = LinguisticEncoder(vocab_size=num_classes, proj_dim=proj_dim, lstm_hidden=lstm_hidden)
 
         self.hq_dim = lstm_hidden * 4 
