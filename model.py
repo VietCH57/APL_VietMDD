@@ -74,7 +74,7 @@ class PhoneticEncoder(nn.Module):
         return x
 
 class LinguisticEncoder(nn.Module): 
-    def __init__(self, vocab_size=71, embed_dim=256, lstm_hidden=256, proj_dim=1024, dropout=0.2):
+    def __init__(self, vocab_size, embed_dim=256, lstm_hidden=256, proj_dim=1024, dropout=0.2):
         super().__init__()
         self.embedding = nn.Embedding(vocab_size, embed_dim)
         self.bilstm = nn.LSTM(input_size=embed_dim, hidden_size=lstm_hidden, bidirectional=True, batch_first=True)
@@ -102,7 +102,7 @@ class AcousticPhoneticLinguistic(nn.Module):
             
         self.acoustic = AcousticEncoder(freq_bins=freq_bins, lstm_hidden=lstm_hidden)
         self.phonetic = PhoneticEncoder(feature_bins=phon_feat_bins, lstm_hidden=lstm_hidden)
-        
+
         self.linguistic = LinguisticEncoder(vocab_size=num_classes, proj_dim=proj_dim, lstm_hidden=lstm_hidden)
 
         self.hq_dim = lstm_hidden * 4 
