@@ -13,13 +13,17 @@ class APLSupervisedDataset(Dataset):
     def __init__(self, csv_path, extracted_dir, vocab_json_path, pad_token="[PAD]"):
         super().__init__()
         self.df = pd.read_csv(csv_path)
-        # extracted_dir đóng vai trò là thư mục gốc "VietMDD" trên Kaggle
         self.wav_dir = extracted_dir 
         
         with open(vocab_json_path, 'r', encoding='utf-8') as f:
             self.vocab = json.load(f)
             
-        self.pad_idx = self.vocab.get(pad_token, 69)
+        if "[PAD]" not in self.vocab:
+            self.vocab["[PAD]"] = len(self.vocab)
+        if "" not in self.vocab:
+            self.vocab[""] = len(self.vocab)
+            
+        self.pad_idx = self.vocab[pad_token]
 
     def _text_to_ids(self, text_string):
         if pd.isna(text_string):
@@ -33,27 +37,18 @@ class APLSupervisedDataset(Dataset):
         row = self.df.iloc[idx]
         path_str = str(row['Path']).strip()
         
-        # Tiền tố đặc biệt thuộc nhóm trường mầm non (kindergarten)
         kinder_prefixes = ("đông", "thành", "tú", "tuyến")
-        
         if path_str.startswith(kinder_prefixes):
-            # Ví dụ: path_str là "tuyến_1-1"
-            # Tách chuỗi tại dấu gạch dưới đầu tiên: prefix="tuyến", rest="1-1"
             if "_" in path_str:
                 prefix, rest = path_str.split("_", 1)
             else:
                 prefix, rest = path_str, ""
-                
-            # Tạo đường dẫn: VietMDD/kindergarten/tuyến/1-1.wav
             relative_path = os.path.join("kindergarten", prefix, f"{rest}.wav")
         else:
-            # Thuộc nhóm trường tiểu học (primaryschool)
-            # Tạo đường dẫn: VietMDD/primaryschool/THA_Nu_6_S00042_201.wav
             relative_path = os.path.join("primaryschool", f"{path_str}.wav")
             
         wav_path = os.path.join(self.wav_dir, relative_path)
         
-        # 1. Tải trực tiếp tín hiệu âm thanh thô .wav
         waveform, sr = torchaudio.load(wav_path)
         if sr != SAMPLING_RATE:
             waveform = torchaudio.functional.resample(waveform, sr, SAMPLING_RATE)

@@ -15,17 +15,23 @@ def main(args):
     
     with open(args.vocab_path, 'r', encoding='utf-8') as f:
         vocab = json.load(f)
+        
+    if "[PAD]" not in vocab:
+        vocab["[PAD]"] = len(vocab)
+    if "" not in vocab:
+        vocab[""] = len(vocab)
+        
     id_to_vocab = {v: k for k, v in vocab.items()}
     
-    pad_idx = vocab.get("[PAD]", 69)
-    empty_idx = vocab.get("", 68)
+    pad_idx = vocab["[PAD]"]
+    empty_idx = vocab[""]
     
     test_dataset = APLSupervisedDataset(args.test_csv, args.wav_dir, args.vocab_path)
     collate_fn = make_apl_collate_fn(pad_idx=pad_idx, error_pad_idx=2)
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, collate_fn=collate_fn, num_workers=2)
     
     model = AcousticPhoneticLinguistic(
-        num_classes=len(vocab), freq_bins=81, phon_feat_bins=1024, lstm_hidden=256, proj_dim=1024
+        num_classes=len(vocab), freq_bins=81, phon_feat_bins=768, lstm_hidden=256, proj_dim=1024
     ).to(device)
     
     print(f"Loading weights from: {args.checkpoint}")

@@ -34,11 +34,17 @@ def main(args):
     
     with open(args.vocab_path, 'r', encoding='utf-8') as f:
         vocab = json.load(f)
+        
+    if "[PAD]" not in vocab:
+        vocab["[PAD]"] = len(vocab)
+    if "" not in vocab:
+        vocab[""] = len(vocab)
+        
     id_to_vocab = {v: k for k, v in vocab.items()}
     
-    pad_idx = vocab.get("[PAD]", 69)
-    empty_idx = vocab.get("", 68)
-    print(f"Dynamic Mapping Found -> [PAD] ID: {pad_idx} | Empty String ID: {empty_idx}")
+    pad_idx = vocab["[PAD]"]
+    empty_idx = vocab[""]
+    print(f"Dynamic Mapping Configured -> [PAD] ID: {pad_idx} | Empty ID: {empty_idx} | Total Classes: {len(vocab)}")
     
     train_dataset = APLSupervisedDataset(args.train_csv, args.wav_dir, args.vocab_path)
     dev_dataset = APLSupervisedDataset(args.dev_csv, args.wav_dir, args.vocab_path)
@@ -49,7 +55,7 @@ def main(args):
     dev_loader = DataLoader(dev_dataset, batch_size=args.batch_size, shuffle=False, collate_fn=collate_fn, num_workers=4)
     
     model = AcousticPhoneticLinguistic(
-        num_classes=len(vocab), freq_bins=81, phon_feat_bins=1024, lstm_hidden=256, proj_dim=1024
+        num_classes=len(vocab), freq_bins=81, phon_feat_bins=768, lstm_hidden=256, proj_dim=1024
     ).to(device)
     
     criterion = nn.CTCLoss(blank=pad_idx, zero_infinity=True)
@@ -139,7 +145,7 @@ if __name__ == "__main__":
     parser.add_argument("--wav_dir", type=str, default="/kaggle/input/VietMDD")
     parser.add_argument("--vocab_path", type=str, default="./vocab.json")
     parser.add_argument("--checkpoint_dir", type=str, default="./checkpoint")
-    parser.add_argument("--batch_size", type=int, default=4)
+    parser.add_argument("--batch_size", type=int, default=4) 
     parser.add_argument("--epochs", type=int, default=30)
     parser.add_argument("--learning_rate", type=float, default=1e-4)
     parser.add_argument("--eval_every_epochs", type=int, default=5)
