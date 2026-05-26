@@ -25,7 +25,7 @@ def main(args):
     test_loader = DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, collate_fn=collate_fn, num_workers=2)
     
     model = AcousticPhoneticLinguistic(
-        num_classes=len(vocab), freq_bins=81, phon_feat_bins=768, lstm_hidden=256, proj_dim=1024
+        num_classes=len(vocab), freq_bins=81, phon_feat_bins=1024, lstm_hidden=256, proj_dim=1024
     ).to(device)
     
     print(f"Loading weights from: {args.checkpoint}")

@@ -49,7 +49,7 @@ def main(args):
     dev_loader = DataLoader(dev_dataset, batch_size=args.batch_size, shuffle=False, collate_fn=collate_fn, num_workers=4)
     
     model = AcousticPhoneticLinguistic(
-        num_classes=len(vocab), freq_bins=81, phon_feat_bins=768, lstm_hidden=256, proj_dim=1024
+        num_classes=len(vocab), freq_bins=81, phon_feat_bins=1024, lstm_hidden=256, proj_dim=1024
     ).to(device)
     
     criterion = nn.CTCLoss(blank=pad_idx, zero_infinity=True)
